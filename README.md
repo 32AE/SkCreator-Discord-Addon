@@ -46,6 +46,7 @@ Things To Modify:
 The stuff shown in the code bubble below is everything you NEED or SHOULD be editing to begin with.
 
 options:
+
     botName: SkCreators-Disc
 
     token: OTQzNjU5ODM0NjY0OTY4Mjgy.Yg2RtA.dgvB2SObmtplaWPedNsbsxos498
