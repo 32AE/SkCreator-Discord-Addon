@@ -1,0 +1,179 @@
+# Thank you for installing SkCreator-Disc!
+#
+# With SkCreator-Disc you can create scripts
+# delete, and reload and over all edit scripts
+# with simple ease of access, with a built in 
+# editor, This is can be used if you're offline 
+# and if you wanna check things out with your server
+# or if you just don't wanna get off discord and you wanna still script!
+#
+# Thank you for being with us through out the in-game version!
+# we hope the discord version also fits your needs!
+#
+# Be sure to join our support discord server on our SkUnity page!
+#
+# NOTE! If you get any error regarding the dropdown selection not responding
+# ignore it, and move on with coding. It has no effect with what you're doing
+# it's just there to call it out and give you a notice. (It typically does this
+# when reloading this FILE from what i know of!)
+#
+# Happy Discord Scripting!
+#    - Emma
+
+options:  
+    # What is the bot name you want to use? Preferably just stick with the default name
+    # as this doesn't change or effect anything that the bot has to it.
+    botName: SkCreators-Disc
+
+    # In order to create a discord bot with ease, you're gonna need to create a bot.
+    # and grab its bot token and paste it down here. Head to: 
+    # https://discord.com/developers/applications/ to create your brand new discord bot!
+    token: OTQzNjU5ODM0NjY0OTY4Mjgy.Yg2RtA.kSYRBrfEtmLrQ-1vvDgp9uZwJTQ
+
+    # This is the prefix that you want the bot to use, for instance like ?ban SkCreator test
+    prefix: .
+
+    # What is the channel you want to code in while creating scripts/deleting/reloading, ( Recommended to keep this channel privated
+    # so people can't steal the code you're typing out! )
+    channel: general
+
+on load:
+    make new discord bot:
+        enable all default intents 
+        login to "{@token}" with name "{@botName}"
+
+on unload:
+    shutdown bot named "{@botName}"
+		
+on dropdown update:
+    if event-dropdown contains "skcreator/home":
+        defer interaction
+        edit {message::%discord id of event-user%} to show "Updating dropdown choices... (Please reselect the choice you just selected this is a slight issue)" and keep components
+
+on dropdown interact:
+    if first element of event-choices is "create":
+        edit {message::%discord id of event-user%} to show "Please type out the name of your script!" and keep components
+        set {createscript::%discord id of event-user%} to true 
+    if event-choices is "delete":
+        edit {message::%discord id of event-user%} to show "Please type out a script you wish to delete!" and keep components
+        set {deletescript::%discord id of event-user%} to true 
+    if event-choices is "reload":
+        edit {message::%discord id of event-user%} to show "Please type out a script you want to reload!" and keep components
+        set {reloadscript::%discord id of event-user%} to true 
+    if event-choices is "backup":
+        delete directory path "plugins/SkCreator Discord Addon/Backups/scripts/"
+        edit {message::%discord id of event-user%} to show "Backing up all scripts..." and keep components
+        wait 2 seconds 
+        copy directory path "plugins/Skript/scripts/" to directory path "plugins/SkCreator Discord Addon/Backups/"
+        edit {message::%discord id of event-user%} to show "Backed up all the scripts you have!" and keep components
+        wait 2 seconds 
+        edit {message::%discord id of event-user%} to show "Select what you want to do with SkCreator!" and keep components
+
+
+on message receive seen by "{@botName}":
+    if {reloadscript::%discord id of event-user%} is true:
+        if file path "plugins/Skript/scripts/%event-message%.sk" is missing:
+            edit {message::%discord id of event-user%} to show "I can not find the script file you specified please try again!" and keep components
+        else:
+            edit {message::%discord id of event-user%} to show "Reloading the script file: %event-message%.sk! Please give me a moment." and keep components
+            execute console command "skript reload %event-message%.sk"
+            edit {message::%discord id of event-user%} to show "The script file you requested has been reloaded!" and keep components
+            delete {reloadscript::%discord id of event-user%}
+            set {reloadscript::%discord id of event-user%} to false 
+    else if {deletescript::%discord id of event-user%} is true:
+        if file path "plugins/Skript/scripts/%event-message%.sk" is missing:
+            edit {message::%discord id of event-user%} to show "I can not find the script file you specified please try again!" and keep components
+        else:
+            edit {message::%discord id of event-user%} to show "Deleting the file: %event-message%.sk!" and keep components
+            delete file path "plugins/Skript/scripts/%event-message%.sk"
+            wait 3 seconds 
+            edit {message::%discord id of event-user%} to show "Deleted the requested file!" and keep components
+            delete {deletescript::%discord id of event-user%}
+            set {deletescript::%discord id of event-user%} to false 
+            edit {message::%discord id of event-user%} to show "Select what you want to do with SkCreator!" and keep components
+    else if {createscript::%discord id of event-user%} is true:
+        if file path "plugins/Skript/scripts/%event-message%.sk" is missing:
+            edit {message::%discord id of event-user%} to show "Thank you for naming a script! Give me a moment while i create it." and keep components
+            create file path "plugins/Skript/scripts/%event-message%.sk"
+            wait 5 seconds
+            edit {message::%discord id of event-user%} to show "The script you requested was created!" and keep components
+            wait 3 seconds 
+            edit {message::%discord id of event-user%} to show "Select what you want to do with SkCreator!" and keep components
+            delete {createscript::%discord id of event-user%}
+            set {createscript::%discord id of event-user%} to false 
+        else:
+            edit {message::%discord id of event-user%} to show "The script you requested already exists. Please try again!" and keep components
+            wait 10 seconds 
+            edit {message::%discord id of event-user%} to show "Please type out the name of your script!" and keep components
+
+discord command skcreator [<text>] [<text>] [<text>]:
+    prefixes: {@prefix}
+    trigger:
+        if arg 1 is not set:
+            if channel name of event-channel is "{@channel}":
+                make new dropdown with id "skcreator/home":
+                    set min range of dropdown to 1
+                    set max range of dropdown to 1
+                    add new choice with value "create" with name "Create A Script" with description "Create a script with a click of a button" with reaction "scroll" to choices of dropdown
+                    add new choice with value "delete" with name "Delete A Script" with description "Delete a script with a click of a button" with reaction "x" to choices of dropdown
+                    add new choice with value "reload" with name "Reload A Script" with description "Reload a script with a click of a button" with reaction "pencil2" to choices of dropdown
+                    add new choice with value "backup" with name "Backup Scripts" with description "Backup all your scripts upon clicking this" with reaction "arrow_down_small" to choices of dropdown
+                reply with "Select what you want to do with SkCreator!" with components last dropdown and store it in {message::%discord id of event-user%}
+            else:
+                make new embed:
+                    set title of embed to "An Error Occured"
+                    add inline field named "Wrong Channel!" with value "You can not manager scripts in this channel!" to fields of embed
+                    set color of embed to red 
+                reply with the last created embed
+
+on script load:
+    if file path "plugins/SkCreator Discord Addon/" is missing:
+        create directory path "plugins/SkCreator Discord Addon/"
+        create directory path "plugins/SkCreator Discord Addon/Backups/"
+        create directory path "plugins/SkCreator Discord Addon/Expansions/"
+        create file path "plugins/SkCreator Discord Addon/notice.yml"
+        create file path "plugins/SkCreator Discord Addon/info.yml"
+        create file path "plugins/SkCreator Discord Addon/addons.yml"
+        wait 2 ticks 
+        append "## NOTICE!" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append "## These folders are for special modifications like the following:" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append "##     - Backups" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append "##     - Addons/Expansions" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append "## If you delete this folder then you will lose a ton of backed up" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        append "## progress and you will have to re-install your backups!" to file path "plugins/SkCreator Discord Addon/notice.yml"
+        wait 2 second 
+        append "## SkCreator Discord Addon Information" to file path "plugins/SkCreator Discord Addon/info.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/info.yml"
+        append "## Created By: 32AE (Emma)" to file path "plugins/SkCreator Discord Addon/info.yml"
+        append "## Addons Supported: 14" to file path "plugins/SkCreator Discord Addon/info.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/info.yml"
+        append "## Create scripts in-game with ease with little to 0 coding knowledge needed!" to file path "plugins/SkCreator Discord Addon/info.yml"
+        append "## If you like what you see feel free to give us a rating on SpigotMC or on SkUnity!" to file path "plugins/SkCreator Discord Addon/info.yml"
+        wait 4 seconds  
+        append "## Addons Support" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## Request Addons:" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## You can request addons in our support discord server that you want to see" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## with in SkCreator!" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## Addons List:" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append " " to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - SkRayFall" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skellett" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Tablisknu" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - SkQuery" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skent" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-NPC" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-Mirror" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-GUI" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-Advancements" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-Reflect" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - Skript-Votifier-Hook" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - SkUtils" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - SkUtilities" to file path "plugins/SkCreator Discord Addon/addons.yml"
+        append "## - DiSKy" to file path "plugins/SkCreator Discord Addon/addons.yml"
+    else:
+        stop
